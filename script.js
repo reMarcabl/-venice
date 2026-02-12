@@ -46,27 +46,38 @@ document.getElementById('book').addEventListener('click', (e) => {
     if(e.target.tagName !== 'BUTTON') goNext();
 });
 
-window.addEventListener('load', () => {
-    const loadingScreen = document.getElementById('loading-screen');
-    const audio = document.getElementById('bg-music');
+const audio = document.getElementById('bg-music');
+const loadingScreen = document.getElementById('loading-screen');
 
-    // 1. Hide the loading screen
+// Function to handle the transition
+function revealPage() {
+    // Fade out
     loadingScreen.style.opacity = '0';
-    
-    // 2. Remove it from the layout after the fade
+    // Remove after fade
     setTimeout(() => {
         loadingScreen.style.display = 'none';
     }, 800);
-
-    // 3. Attempt to play (might be blocked, but will trigger on first click)
+    
+    // Try to autoplay (might be blocked, which is fine)
     audio.play().catch(() => {
-        console.log("Autoplay blocked. Music will start on first interaction.");
+        console.log("Autoplay blocked - waiting for first interaction.");
     });
-});
+}
 
-// 4. Backup: Ensure music plays when she clicks the book
+// CONDITION: Only proceed if the music is ready
+if (audio.readyState >= 3) {
+    // Already loaded (cached)
+    revealPage();
+} else {
+    // Wait until it's loaded enough to play through
+    audio.addEventListener('canplaythrough', revealPage, { once: true });
+}
+
+// CRITICAL FIX: The "Unlocking" click
+// Since mobile browsers block audio, this ensures that her 
+// very first tap on the book cover "unlocks" and plays the music.
 document.addEventListener('click', () => {
     if (audio.paused) {
         audio.play();
     }
-}, { once: true }); // Only runs on the very first click
+}, { once: true });
